@@ -33,6 +33,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -199,9 +200,9 @@ fun AppLayout(modifier: Modifier = Modifier) {
     val gameWord = "APPLE"
     val hint = "Hint: Something you can eat"
 
-    var hintRound by remember {mutableStateOf(HintRound.MESSAGE)}
-    var livesLeft by remember {mutableIntStateOf(6)}
-    var usedLetters by remember {mutableStateOf(setOf<Char>())} // all used letters, even if they were wrong
+    var hintRound by rememberSaveable {mutableStateOf(HintRound.MESSAGE)}
+    var livesLeft by rememberSaveable {mutableIntStateOf(6)}
+    var usedLetters by rememberSaveable {mutableStateOf(setOf<Char>())} // all used letters, even if they were wrong
     var gameWon = true
     for (letter in gameWord) {
         if (!usedLetters.contains(letter)) {
