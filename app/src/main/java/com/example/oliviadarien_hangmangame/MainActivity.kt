@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -40,6 +41,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -80,20 +83,26 @@ fun ChooseLetterPanel(usedLetters: Set<Char>, enabled: Boolean, onLetterClick: (
             border = BorderStroke(1.dp, Color.Black),
             shape = RoundedCornerShape(0),
             colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Black),
-            modifier=Modifier.fillMaxSize().padding(4.dp)) {
+            modifier=Modifier.fillMaxSize().padding(3.dp)) {
             Text(label)
         }
     }
 
-    Column(Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally)
+    Column(Modifier.fillMaxSize().padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center)
     {
-        Text("Choose a Letter", fontSize=32.sp,modifier=Modifier.padding(16.dp, 8.dp, 0.dp, 8.dp))
+        Text("Choose a Letter",
+            fontSize=32.sp,
+            fontWeight = FontWeight.Bold,
+            modifier=Modifier.padding(16.dp, 8.dp, 0.dp, 8.dp))
         Box(modifier = Modifier.fillMaxWidth(),
             contentAlignment = Alignment.Center) {
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(minSize = 64.dp),
-                modifier = Modifier.padding(8.dp),
+                modifier = Modifier
+                    .padding(8.dp)
+                    .fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
                 items(26) { index ->
@@ -113,14 +122,17 @@ fun ChooseLetterPanel(usedLetters: Set<Char>, enabled: Boolean, onLetterClick: (
 @Composable
 fun HintPanel(hint: String, enabled: Boolean, onHintClick: ()->Unit) {
     ElevatedCard(Modifier.fillMaxSize()) {
-        Column(Modifier.fillMaxSize(), horizontalAlignment=Alignment.CenterHorizontally) {
-            Spacer(Modifier.height(8.dp))
-            Text(hint, fontSize=24.sp)
-            Spacer(Modifier.weight(1f))
-            OutlinedButton(onClick=onHintClick, enabled=enabled) {
-                Text("Hint")
+        Box(Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(hint, fontSize=24.sp, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(20.dp))
+                OutlinedButton(onClick=onHintClick, enabled=enabled, border = BorderStroke(1.dp, Color.Black),
+                    shape = RoundedCornerShape(0),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Black)) {
+                    Text("Hint")
+                }
             }
-            Spacer(Modifier.height(8.dp))
         }
     }
 }
@@ -143,23 +155,9 @@ fun GamePlayPanel(gameWord: String, livesLeft: Int, usedLetters: Set<Char>, game
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center)
     {
-        // Won Game
-        if (gameWon){
-            Text("Congrats! You Won!")
-            OutlinedButton(onClick = onReset) {
-                Text("Reset Game")
-            }
 
-        }
-        // Lost Game
-        else if (livesLeft <= 0){
-            Text("You lost... Try again next time!")
-            OutlinedButton(onClick = onReset) {
-                Text("Reset Game")
-            }
-        }
         // Playing game
-        else{
+
             // depending on livesLeft -> different image
             Image(
                 painter = painterResource(images.find {it.first == livesLeft}?.second?: R.drawable.p0),
@@ -170,7 +168,32 @@ fun GamePlayPanel(gameWord: String, livesLeft: Int, usedLetters: Set<Char>, game
                     .fillMaxWidth()
             )
 
-            // shows the letters
+        // shows the letters
+
+        // Won Game
+        if (gameWon){
+            Text("Congrats! You Won!", fontWeight = FontWeight.Bold, fontSize = 24.sp, textAlign = TextAlign.Center)
+            Spacer(Modifier.height(16.dp))
+            OutlinedButton(onClick = onReset,
+                border = BorderStroke(1.dp, Color.Black),
+                shape = RoundedCornerShape(0),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Black)) {
+                Text("Reset Game")
+            }
+
+        }
+
+        // Lost Game
+        else if (livesLeft <= 0){
+            Text(text="You lost... Try again next time!", fontWeight = FontWeight.Bold, fontSize = 24.sp, textAlign = TextAlign.Center)
+            Spacer(Modifier.height(16.dp))
+            OutlinedButton(onClick = onReset,border = BorderStroke(1.dp, Color.Black),
+                shape = RoundedCornerShape(0),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Black)) {
+                Text("Reset Game")
+            }
+        }
+        else {
             Row(){
                 Spacer(Modifier.width(5.dp))
                 for (char in gameWord) {
@@ -180,7 +203,7 @@ fun GamePlayPanel(gameWord: String, livesLeft: Int, usedLetters: Set<Char>, game
                             textDecoration = TextDecoration.Underline)
 
                         Spacer(Modifier.width(5.dp))
-                        }
+                    }
 
                     else{
                         Text(text = "   ",
@@ -191,6 +214,7 @@ fun GamePlayPanel(gameWord: String, livesLeft: Int, usedLetters: Set<Char>, game
                 }
             }
         }
+
     }
 }
 
@@ -250,7 +274,7 @@ fun AppLayout(modifier: Modifier = Modifier) {
     val windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
     if (windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.COMPACT) { // Portrait
         Column(modifier=modifier) {
-            Box(modifier=Modifier.weight(1f)) {
+            Box(modifier=Modifier.weight(1f), contentAlignment = Alignment.Center) {
                 GamePlayPanel(gameWord, livesLeft, usedLetters, gameWon, ::resetGame)
             }
             Box(modifier=Modifier.weight(1f)) {
@@ -263,7 +287,7 @@ fun AppLayout(modifier: Modifier = Modifier) {
                 Box(modifier=Modifier.weight(2f)) {
                     ChooseLetterPanel(usedLetters, livesLeft > 0 && !gameWon, ::testLetter)
                 }
-                Box(modifier=Modifier.weight(1f)) {
+                Box(modifier=Modifier.weight(1f).padding(20.dp)) {
                     HintPanel(if (hintRound > HintRound.MESSAGE) hint else "Click for hint", livesLeft > 0 && hintRound != HintRound.NO_HINT && !gameWon) {
                         if (hintRound == HintRound.MESSAGE) {
                             hintRound = HintRound.HALF_LETTERS
@@ -281,7 +305,7 @@ fun AppLayout(modifier: Modifier = Modifier) {
                     }
                 }
             }
-            Box(modifier=Modifier.weight(1f)) {
+            Box(modifier=Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.Center) {
                 GamePlayPanel(gameWord, livesLeft, usedLetters, gameWon, ::resetGame)
             }
         }
