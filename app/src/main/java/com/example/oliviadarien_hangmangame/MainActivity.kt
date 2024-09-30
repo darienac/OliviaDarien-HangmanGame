@@ -5,16 +5,23 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.OutlinedButton
@@ -30,7 +37,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -64,17 +74,35 @@ enum class HintRound {
 fun ChooseLetterPanel(usedLetters: Set<Char>, enabled: Boolean, onLetterClick: (letter: Char)->Unit) {
     @Composable
     fun LetterInputButton(label: String, enabled: Boolean, onClick: ()->Unit) {
-        FilledTonalButton(onClick=onClick, enabled=enabled, modifier=Modifier.fillMaxSize().padding(2.dp)) {
+        OutlinedButton(
+            onClick=onClick,
+            enabled=enabled,
+            border = BorderStroke(1.dp, Color.Black),
+            shape = RoundedCornerShape(0),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Black),
+            modifier=Modifier.fillMaxSize().padding(4.dp)) {
             Text(label)
         }
     }
 
-    Column(Modifier.fillMaxSize()) {
-        Text("Choose a Letter", fontSize=32.sp, modifier=Modifier.padding(16.dp, 8.dp, 0.dp, 8.dp))
-        LazyVerticalGrid(columns=GridCells.Adaptive(minSize=64.dp), modifier=Modifier.padding(2.dp).weight(1f)) {
-            items(26) {index->
-                LetterInputButton('A' + index + "", enabled && !usedLetters.contains('A' + index)) {
-                    onLetterClick('A' + index)
+    Column(Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally)
+    {
+        Text("Choose a Letter", fontSize=32.sp,modifier=Modifier.padding(16.dp, 8.dp, 0.dp, 8.dp))
+        Box(modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center) {
+            LazyVerticalGrid(
+                columns = GridCells.Adaptive(minSize = 64.dp),
+                modifier = Modifier.padding(8.dp),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                items(26) { index ->
+                    LetterInputButton(
+                        'A' + index + "",
+                        enabled && !usedLetters.contains('A' + index)
+                    ) {
+                        onLetterClick('A' + index)
+                    }
                 }
             }
         }
@@ -98,12 +126,71 @@ fun HintPanel(hint: String, enabled: Boolean, onHintClick: ()->Unit) {
 }
 
 @Composable
-fun GamePlayPanel(gameWord: String, livesLeft: Int, usedLetters: Set<Char>, gameWon: Boolean) {
-    // Feel free to get rid of this, this was just for me to test stuff
-    Column(Modifier.fillMaxSize().background(Color.Blue)) {
-        Text("word: $gameWord")
-        Text("Lives left: $livesLeft")
-        Text("Game won: $gameWon")
+fun GamePlayPanel(gameWord: String, livesLeft: Int, usedLetters: Set<Char>, gameWon: Boolean, onReset: () -> Unit) {
+    val gameLetters = gameWord.toSet()
+    //  list of # of lives + corresponding images
+    val images = listOf(
+        Pair(6, R.drawable.p6),
+        Pair(5, R.drawable.p5),
+        Pair(4, R.drawable.p4),
+        Pair(3, R.drawable.p3),
+        Pair(2, R.drawable.p2),
+        Pair(1, R.drawable.p1),
+        Pair(0, R.drawable.p0)
+    )
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center)
+    {
+        // Won Game
+        if (gameWon){
+            Text("Congrats! You Won!")
+            OutlinedButton(onClick = onReset) {
+                Text("Reset Game")
+            }
+
+        }
+        // Lost Game
+        else if (livesLeft <= 0){
+            Text("You lost... Try again next time!")
+            OutlinedButton(onClick = onReset) {
+                Text("Reset Game")
+            }
+        }
+        // Playing game
+        else{
+            // depending on livesLeft -> different image
+            Image(
+                painter = painterResource(images.find {it.first == livesLeft}?.second?: R.drawable.p0),
+                contentDescription=null,
+                modifier = Modifier
+                    // makes images same size on screen
+                    .height(350.dp)
+                    .fillMaxWidth()
+            )
+
+            // shows the letters
+            Row(){
+                Spacer(Modifier.width(5.dp))
+                for (char in gameWord) {
+                    if (usedLetters.contains(char)){
+                        Text(text = char.toString(),
+                            fontSize = 50.sp,
+                            textDecoration = TextDecoration.Underline)
+
+                        Spacer(Modifier.width(5.dp))
+                        }
+
+                    else{
+                        Text(text = "   ",
+                            fontSize = 50.sp,
+                            textDecoration = TextDecoration.Underline)
+                        Spacer(Modifier.width(5.dp))
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -152,12 +239,19 @@ fun AppLayout(modifier: Modifier = Modifier) {
         usedLetters = usedLetters.plus(setOf('A', 'E', 'I', 'O', 'U'))
     }
 
+    fun resetGame() {
+        livesLeft = 6
+        usedLetters = setOf<Char>()
+        hintRound = HintRound.MESSAGE
+        gameWon = false
+    }
+
     val context = LocalContext.current
     val windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
     if (windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.COMPACT) { // Portrait
         Column(modifier=modifier) {
             Box(modifier=Modifier.weight(1f)) {
-                GamePlayPanel(gameWord, livesLeft, usedLetters, gameWon)
+                GamePlayPanel(gameWord, livesLeft, usedLetters, gameWon, ::resetGame)
             }
             Box(modifier=Modifier.weight(1f)) {
                 ChooseLetterPanel(usedLetters, livesLeft > 0 && !gameWon, ::testLetter)
@@ -188,7 +282,7 @@ fun AppLayout(modifier: Modifier = Modifier) {
                 }
             }
             Box(modifier=Modifier.weight(1f)) {
-                GamePlayPanel(gameWord, livesLeft, usedLetters, gameWon)
+                GamePlayPanel(gameWord, livesLeft, usedLetters, gameWon, ::resetGame)
             }
         }
     }
@@ -199,5 +293,6 @@ fun AppLayout(modifier: Modifier = Modifier) {
 fun GreetingPreview() {
     OliviaDarienHangmanGameTheme {
         AppLayout()
+
     }
 }
