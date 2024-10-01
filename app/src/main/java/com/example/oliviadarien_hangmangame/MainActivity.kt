@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -84,25 +85,29 @@ fun ChooseLetterPanel(usedLetters: Set<Char>, enabled: Boolean, onLetterClick: (
             border = BorderStroke(1.dp, Color.Black),
             shape = RoundedCornerShape(0),
             colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Black),
-            modifier=Modifier.fillMaxSize().padding(3.dp)) {
-            Text(label)
+            modifier=Modifier
+                .fillMaxSize()
+                .padding(2.dp)
+                .size(width = 8.dp, height =32.dp)) {
+            Text(label,
+                fontSize=15.sp)
         }
     }
 
-    Column(Modifier.fillMaxSize().padding(16.dp),
+    Column(Modifier.fillMaxSize().padding(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center)
     {
         Text("Choose a Letter",
             fontSize=32.sp,
             fontWeight = FontWeight.Bold,
-            modifier=Modifier.padding(16.dp, 8.dp, 0.dp, 8.dp))
+            modifier=Modifier.padding(8.dp, 0.dp, 0.dp, 8.dp))
         Box(modifier = Modifier.fillMaxWidth(),
             contentAlignment = Alignment.Center) {
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(minSize = 64.dp),
                 modifier = Modifier
-                    .padding(8.dp)
+                    .padding(8.dp, 0.dp, 0.dp, 8.dp)
                     .fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
@@ -127,7 +132,7 @@ fun HintPanel(hint: String, enabled: Boolean, onHintClick: ()->Unit) {
             contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(hint, fontSize=24.sp, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(20.dp))
+                Spacer(Modifier.height(8.dp))
                 OutlinedButton(onClick=onHintClick, enabled=enabled, border = BorderStroke(1.dp, Color.Black),
                     shape = RoundedCornerShape(0),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Black)) {
@@ -300,10 +305,10 @@ fun AppLayout(modifier: Modifier = Modifier) {
     } else { // Landscape
         Row(modifier=modifier) {
             Column(modifier=Modifier.weight(1f)) {
-                Box(modifier=Modifier.weight(2f)) {
+                Box(modifier=Modifier.weight(7f)) {
                     ChooseLetterPanel(usedLetters, livesLeft > 0 && !gameWon, ::testLetter)
                 }
-                Box(modifier=Modifier.weight(1f).padding(20.dp)) {
+                Box(modifier=Modifier.weight(3f).padding(8.dp)) {
                     HintPanel(if (hintRound > HintRound.MESSAGE) hint else "Click for hint", livesLeft > 0 && hintRound != HintRound.NO_HINT && !gameWon) {
                         if (hintRound == HintRound.MESSAGE) {
                             hintRound = HintRound.HALF_LETTERS
