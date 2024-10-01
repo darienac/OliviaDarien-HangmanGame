@@ -139,8 +139,7 @@ fun HintPanel(hint: String, enabled: Boolean, onHintClick: ()->Unit) {
 }
 
 @Composable
-fun GamePlayPanel(gameWord: String, livesLeft: Int, usedLetters: Set<Char>, gameWon: Boolean, onReset: () -> Unit) {
-    val gameLetters = gameWord.toSet()
+fun GamePlayPanel(gameWord: String, livesLeft: Int, usedLetters: Set<Char>, gameWon: Boolean, onReset: () -> Unit, newGame: () -> Unit) {
     //  list of # of lives + corresponding images
     val images = listOf(
         Pair(6, R.drawable.p6),
@@ -165,11 +164,10 @@ fun GamePlayPanel(gameWord: String, livesLeft: Int, usedLetters: Set<Char>, game
                 contentDescription=null,
                 modifier = Modifier
                     // makes images same size on screen
-                    .height(350.dp)
+                    .height(300.dp)
                     .fillMaxWidth()
             )
 
-        // shows the letters
 
         // Won Game
         if (gameWon){
@@ -215,14 +213,21 @@ fun GamePlayPanel(gameWord: String, livesLeft: Int, usedLetters: Set<Char>, game
                 }
             }
         }
-
+        OutlinedButton(onClick = newGame,border = BorderStroke(1.dp, Color.Black),
+            shape = RoundedCornerShape(0),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Black)) {
+            Text("New Game")
+        }
     }
 }
 
 @Composable
 fun AppLayout(modifier: Modifier = Modifier) {
-    val gameWord = "APPLE"
-    val hint = "Hint: Something you can eat"
+    var gameNum by rememberSaveable {mutableIntStateOf(1)}
+
+    val gameWord = if (gameNum ==1) "APPLE" else "ELEPHANT"
+    print(gameWord)
+    val hint = if (gameNum ==1) "Hint: Something you can eat" else "Hint: A big animal"
 
     var hintRound by rememberSaveable {mutableStateOf(HintRound.MESSAGE)}
     var livesLeft by rememberSaveable {mutableIntStateOf(6)}
@@ -271,12 +276,20 @@ fun AppLayout(modifier: Modifier = Modifier) {
         gameWon = false
     }
 
+    fun newGame() {
+        livesLeft = 6
+        usedLetters = setOf<Char>()
+        hintRound = HintRound.MESSAGE
+        gameWon = false
+        gameNum = if (gameNum == 1) 2 else 1
+    }
+
     val context = LocalContext.current
     val windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
     if (windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.COMPACT) { // Portrait
         Column(modifier=modifier) {
             Box(modifier=Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                GamePlayPanel(gameWord, livesLeft, usedLetters, gameWon, ::resetGame)
+                GamePlayPanel(gameWord, livesLeft, usedLetters, gameWon, ::resetGame, ::newGame)
             }
             Box(modifier=Modifier.weight(1f)) {
                 ChooseLetterPanel(usedLetters, livesLeft > 0 && !gameWon, ::testLetter)
@@ -307,7 +320,7 @@ fun AppLayout(modifier: Modifier = Modifier) {
                 }
             }
             Box(modifier=Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.Center) {
-                GamePlayPanel(gameWord, livesLeft, usedLetters, gameWon, ::resetGame)
+                GamePlayPanel(gameWord, livesLeft, usedLetters, gameWon, ::resetGame, ::newGame)
             }
         }
     }
