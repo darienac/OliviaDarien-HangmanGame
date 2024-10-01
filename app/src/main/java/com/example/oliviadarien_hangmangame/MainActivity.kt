@@ -42,6 +42,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -75,7 +76,7 @@ enum class HintRound {
 }
 
 @Composable
-fun ChooseLetterPanel(usedLetters: Set<Char>, enabled: Boolean, onLetterClick: (letter: Char)->Unit) {
+fun ChooseLetterPanel(gameWord: String, usedLetters: Set<Char>, enabled: Boolean, onLetterClick: (letter: Char, gameWord: String)->Unit) {
     @Composable
     fun LetterInputButton(label: String, enabled: Boolean, onClick: ()->Unit) {
         OutlinedButton(
@@ -89,7 +90,7 @@ fun ChooseLetterPanel(usedLetters: Set<Char>, enabled: Boolean, onLetterClick: (
         }
     }
 
-    Column(Modifier.fillMaxSize().padding(16.dp),
+    Column(Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center)
     {
@@ -111,7 +112,7 @@ fun ChooseLetterPanel(usedLetters: Set<Char>, enabled: Boolean, onLetterClick: (
                         'A' + index + "",
                         enabled && !usedLetters.contains('A' + index)
                     ) {
-                        onLetterClick('A' + index)
+                        onLetterClick('A' + index, gameWord)
                     }
                 }
             }
@@ -164,7 +165,7 @@ fun GamePlayPanel(gameWord: String, livesLeft: Int, usedLetters: Set<Char>, game
                 contentDescription=null,
                 modifier = Modifier
                     // makes images same size on screen
-                    .height(300.dp)
+                    .weight(1f)
                     .fillMaxWidth()
             )
 
@@ -199,15 +200,16 @@ fun GamePlayPanel(gameWord: String, livesLeft: Int, usedLetters: Set<Char>, game
                     if (usedLetters.contains(char)){
                         Text(text = char.toString(),
                             fontSize = 50.sp,
-                            textDecoration = TextDecoration.Underline)
-
+                            textDecoration = TextDecoration.Underline,
+                            fontFamily= FontFamily.Monospace)
                         Spacer(Modifier.width(5.dp))
                     }
 
                     else{
-                        Text(text = "   ",
+                        Text(text = " ",
                             fontSize = 50.sp,
-                            textDecoration = TextDecoration.Underline)
+                            textDecoration = TextDecoration.Underline,
+                            fontFamily= FontFamily.Monospace)
                         Spacer(Modifier.width(5.dp))
                     }
                 }
@@ -226,7 +228,6 @@ fun AppLayout(modifier: Modifier = Modifier) {
     var gameNum by rememberSaveable {mutableIntStateOf(1)}
 
     val gameWord = if (gameNum ==1) "APPLE" else "ELEPHANT"
-    print(gameWord)
     val hint = if (gameNum ==1) "Hint: Something you can eat" else "Hint: A big animal"
 
     var hintRound by rememberSaveable {mutableStateOf(HintRound.MESSAGE)}
@@ -240,7 +241,7 @@ fun AppLayout(modifier: Modifier = Modifier) {
         }
     }
 
-    fun testLetter(letter: Char) {
+    fun testLetter(letter: Char, gameWord: String) {
         if (usedLetters.contains(letter) || livesLeft == 0) {
             return
         }
@@ -250,7 +251,7 @@ fun AppLayout(modifier: Modifier = Modifier) {
         usedLetters = usedLetters.plusElement(letter)
     }
 
-    fun disableHalfRemaining() {
+    fun disableHalfRemaining(gameWord: String) {
         val lettersNotUsed = mutableSetOf<Char>()
         for (letter in 'A'..'Z') {
             if (!usedLetters.contains(letter) && !gameWord.contains(letter)) {
@@ -292,23 +293,23 @@ fun AppLayout(modifier: Modifier = Modifier) {
                 GamePlayPanel(gameWord, livesLeft, usedLetters, gameWon, ::resetGame, ::newGame)
             }
             Box(modifier=Modifier.weight(1f)) {
-                ChooseLetterPanel(usedLetters, livesLeft > 0 && !gameWon, ::testLetter)
+                ChooseLetterPanel(gameWord, usedLetters, livesLeft > 0 && !gameWon, ::testLetter)
             }
         }
     } else { // Landscape
         Row(modifier=modifier) {
             Column(modifier=Modifier.weight(1f)) {
                 Box(modifier=Modifier.weight(2f)) {
-                    ChooseLetterPanel(usedLetters, livesLeft > 0 && !gameWon, ::testLetter)
+                    ChooseLetterPanel(gameWord, usedLetters, livesLeft > 0 && !gameWon, ::testLetter)
                 }
-                Box(modifier=Modifier.weight(1f).padding(20.dp)) {
+                Box(modifier=Modifier.weight(1f)) {
                     HintPanel(if (hintRound > HintRound.MESSAGE) hint else "Click for hint", livesLeft > 0 && hintRound != HintRound.NO_HINT && !gameWon) {
                         if (hintRound == HintRound.MESSAGE) {
                             hintRound = HintRound.HALF_LETTERS
                         } else if (livesLeft == 0 || hintRound == HintRound.NO_HINT) {
                             Toast.makeText(context, "Hint not available", Toast.LENGTH_SHORT).show()
                         } else if (hintRound == HintRound.HALF_LETTERS) {
-                            disableHalfRemaining()
+                            disableHalfRemaining(gameWord)
                             hintRound = HintRound.SHOW_VOWELS
                             livesLeft--
                         } else if (hintRound == HintRound.SHOW_VOWELS) {
