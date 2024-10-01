@@ -158,15 +158,15 @@ fun GamePlayPanel(gameWord: String, livesLeft: Int, usedLetters: Set<Char>, game
 
         // Playing game
 
-        // depending on livesLeft -> different image
-        Image(
-            painter = painterResource(images.find {it.first == livesLeft}?.second?: R.drawable.p0),
-            contentDescription=null,
-            modifier = Modifier
-                // makes images same size on screen
-                .height(300.dp)
-                .fillMaxWidth()
-        )
+            // depending on livesLeft -> different image
+            Image(
+                painter = painterResource(images.find {it.first == livesLeft}?.second?: R.drawable.p0),
+                contentDescription=null,
+                modifier = Modifier
+                    // makes images same size on screen
+                    .weight(1f)
+                    .fillMaxWidth()
+            )
 
 
         // Won Game
@@ -202,7 +202,6 @@ fun GamePlayPanel(gameWord: String, livesLeft: Int, usedLetters: Set<Char>, game
                             textDecoration = TextDecoration.Underline)
 
                         Spacer(Modifier.width(5.dp))
-
                     }
 
                     else{
@@ -248,7 +247,6 @@ fun AppLayout(modifier: Modifier = Modifier) {
             return
         }
         if (!gameWord.contains(letter)) {
-            print(letter.toString())
             livesLeft--
         }
         usedLetters = usedLetters.plusElement(letter)
@@ -338,4 +336,3 @@ fun GreetingPreview() {
 
     }
 }
-
