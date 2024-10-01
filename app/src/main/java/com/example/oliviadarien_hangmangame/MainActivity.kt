@@ -158,15 +158,15 @@ fun GamePlayPanel(gameWord: String, livesLeft: Int, usedLetters: Set<Char>, game
 
         // Playing game
 
-            // depending on livesLeft -> different image
-            Image(
-                painter = painterResource(images.find {it.first == livesLeft}?.second?: R.drawable.p0),
-                contentDescription=null,
-                modifier = Modifier
-                    // makes images same size on screen
-                    .height(300.dp)
-                    .fillMaxWidth()
-            )
+        // depending on livesLeft -> different image
+        Image(
+            painter = painterResource(images.find {it.first == livesLeft}?.second?: R.drawable.p0),
+            contentDescription=null,
+            modifier = Modifier
+                // makes images same size on screen
+                .height(300.dp)
+                .fillMaxWidth()
+        )
 
 
         // Won Game
@@ -202,6 +202,7 @@ fun GamePlayPanel(gameWord: String, livesLeft: Int, usedLetters: Set<Char>, game
                             textDecoration = TextDecoration.Underline)
 
                         Spacer(Modifier.width(5.dp))
+
                     }
 
                     else{
@@ -225,9 +226,10 @@ fun GamePlayPanel(gameWord: String, livesLeft: Int, usedLetters: Set<Char>, game
 fun AppLayout(modifier: Modifier = Modifier) {
     var gameNum by rememberSaveable {mutableIntStateOf(1)}
 
-    val gameWord = if (gameNum ==1) "APPLE" else "ELEPHANT"
-    print(gameWord)
-    val hint = if (gameNum ==1) "Hint: Something you can eat" else "Hint: A big animal"
+    var gameWord by rememberSaveable {mutableStateOf("APPLE")}
+    if (gameNum ==1) gameWord = "APPLE" else gameWord = "ELEPHANT"
+    var hint by rememberSaveable {mutableStateOf("Hint: Something you can eat")}
+    if (gameNum ==1) hint = "Hint: Something you can eat" else hint = "Hint: A big animal"
 
     var hintRound by rememberSaveable {mutableStateOf(HintRound.MESSAGE)}
     var livesLeft by rememberSaveable {mutableIntStateOf(6)}
@@ -240,11 +242,13 @@ fun AppLayout(modifier: Modifier = Modifier) {
         }
     }
 
+
     fun testLetter(letter: Char) {
         if (usedLetters.contains(letter) || livesLeft == 0) {
             return
         }
         if (!gameWord.contains(letter)) {
+            print(letter.toString())
             livesLeft--
         }
         usedLetters = usedLetters.plusElement(letter)
@@ -305,7 +309,7 @@ fun AppLayout(modifier: Modifier = Modifier) {
                     HintPanel(if (hintRound > HintRound.MESSAGE) hint else "Click for hint", livesLeft > 0 && hintRound != HintRound.NO_HINT && !gameWon) {
                         if (hintRound == HintRound.MESSAGE) {
                             hintRound = HintRound.HALF_LETTERS
-                        } else if (livesLeft == 0 || hintRound == HintRound.NO_HINT) {
+                        } else if (livesLeft == 1 || hintRound == HintRound.NO_HINT) {
                             Toast.makeText(context, "Hint not available", Toast.LENGTH_SHORT).show()
                         } else if (hintRound == HintRound.HALF_LETTERS) {
                             disableHalfRemaining()
@@ -334,3 +338,4 @@ fun GreetingPreview() {
 
     }
 }
+
